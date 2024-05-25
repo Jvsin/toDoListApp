@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="status_array">
+        <item>Zakończone</item>
+        <item>Niezakończone</item>
+    </string-array>
+
+    <string-array name="notification_array">
+        <item>ON</item>
+        <item>OFF</item>
+    </string-array>
+
+    <string-array name="category_array">
+        <item>Studia</item>
+        <item>Praca</item>
+        <item>Dom</item>
+    </string-array>
+</resources>

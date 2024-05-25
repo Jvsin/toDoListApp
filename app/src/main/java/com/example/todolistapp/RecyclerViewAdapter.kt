@@ -8,7 +8,6 @@ import androidx.recyclerview.widget.RecyclerView
 
 class RecyclerViewAdapter(private val dataList: List<TaskItem>) : RecyclerView.Adapter<RecyclerViewAdapter.ViewHolder>() {
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-
         val textViewTitle: TextView = itemView.findViewById(R.id.title)
         val textViewDescription: TextView = itemView.findViewById(R.id.description)
     }
