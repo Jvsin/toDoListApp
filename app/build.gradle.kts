@@ -37,6 +37,8 @@ android {
 
 dependencies {
     implementation ("androidx.recyclerview:recyclerview:1.0.0")
+    implementation(platform("androidx.compose:compose-bom:2024.05.00"))
+    implementation ("com.google.android.material:material:1.4.0")
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
