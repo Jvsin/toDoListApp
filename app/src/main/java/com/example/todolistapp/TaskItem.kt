@@ -6,7 +6,7 @@ data class TaskItem(
 //    val creationTime: Long,
 //    val executionTime: Long,
 //    val status: TaskStatus,
-//    val notificationEnabled: Boolean,
+    val notificationEnabled: Boolean,
 //    val category: String,
 //    val attachments: List<Attachment>
 )

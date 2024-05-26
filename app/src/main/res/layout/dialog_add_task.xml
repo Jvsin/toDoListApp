@@ -36,39 +36,16 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
+        android:weightSum="10"
         android:id="@+id/settings"
         app:layout_constraintTop_toBottomOf="@id/description"
         tools:ignore="MissingConstraints">
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:id="@+id/notificationLayout"
-            android:orientation="vertical"
-            app:layout_constraintTop_toBottomOf="@id/description">
 
-            <TextView
-                android:gravity="center"
-                android:id="@+id/notification_label"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Powiadomienie: "
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/description" />
-
-            <Spinner
-                android:id="@+id/notification"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:entries="@array/notification_array"
-                app:layout_constraintStart_toEndOf="@id/notification_label"
-                app:layout_constraintTop_toBottomOf="@id/description" />
-        </LinearLayout>
 
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight="1"
+            android:layout_weight="10"
             android:id="@+id/categoryLayout"
             android:orientation="vertical"
             app:layout_constraintTop_toBottomOf="@id/description">
@@ -80,7 +57,7 @@
                 android:layout_height="wrap_content"
                 android:text="Kategoria: "
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/notification" />
+                app:layout_constraintTop_toBottomOf="@id/description" />
 
             <Spinner
                 android:id="@+id/category"
@@ -88,17 +65,72 @@
                 android:layout_height="match_parent"
                 android:entries="@array/category_array"
                 app:layout_constraintStart_toEndOf="@id/category_label"
-                app:layout_constraintTop_toBottomOf="@id/notification" />
+                app:layout_constraintTop_toBottomOf="@id/description" />
         </LinearLayout>
     </LinearLayout>
 
-    <Button
-        android:id="@+id/execution_time"
-        android:layout_width="wrap_content"
+<!--    <Button-->
+<!--        android:id="@+id/execution_time"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:text="Ustaw termin"-->
+<!--        app:layout_constraintStart_toStartOf="parent"-->
+<!--        app:layout_constraintTop_toBottomOf="@id/settings" />-->
+    <LinearLayout
+        android:id="@+id/datePicker"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Wybierz czas wykonania"
+        android:orientation="horizontal"
+        android:weightSum="6"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/settings" />
+        app:layout_constraintTop_toBottomOf="@id/settings" >
+
+        <NumberPicker
+            android:id="@+id/dayPicker"
+            android:layout_weight="2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+        <NumberPicker
+            android:id="@+id/monthPicker"
+            android:layout_width="wrap_content"
+            android:layout_weight="2"
+            android:layout_height="wrap_content" />
+
+        <NumberPicker
+            android:id="@+id/yearPicker"
+            android:layout_width="wrap_content"
+            android:layout_weight="2"
+            android:layout_height="wrap_content" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="4"
+        android:id="@+id/notificationLayout"
+        android:orientation="horizontal"
+        app:layout_constraintTop_toBottomOf="@id/datePicker">
+
+        <TextView
+            android:gravity="center"
+            android:id="@+id/notification_label"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Włącz powiadomienia: "
+            android:layout_weight="2"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/datePicker" />
+
+        <androidx.appcompat.widget.SwitchCompat
+            android:id="@+id/notification"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            app:layout_constraintStart_toEndOf="@id/notification_label"
+            app:layout_constraintTop_toBottomOf="@id/datePicker" />
+    </LinearLayout>
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>
