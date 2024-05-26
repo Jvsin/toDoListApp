@@ -4,7 +4,7 @@ data class TaskItem(
     val title: String,
     val description: String,
 //    val creationTime: Long,
-//    val executionTime: Long,
+    val deadline: Long,
 //    val status: TaskStatus,
     val notificationEnabled: Boolean,
 //    val category: String,

@@ -3,6 +3,7 @@ package com.example.todolistapp
 import android.app.AlertDialog
 import android.content.Context
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.EditText
@@ -16,7 +17,9 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
+import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.ZoneId
 
 class MainActivity : AppCompatActivity() {
 
@@ -32,11 +35,11 @@ class MainActivity : AppCompatActivity() {
         adapter = RecyclerViewAdapter(taskList)
         recyclerView.adapter = adapter
 
-        val task1 = TaskItem("Tytuł", "Opis", true)
-        val task2 = TaskItem("Tytuł", "Opis", true)
+//        val task1 = TaskItem("Tytuł", "Opis", true)
+//        val task2 = TaskItem("Tytuł", "Opis", true)
 
-        taskList.add(task1)
-        taskList.add(task2)
+//        taskList.add(task1)
+//        taskList.add(task2)
 
         val addBtn: FloatingActionButton = findViewById(R.id.floatingButton)
         addBtn.setOnClickListener { view ->
@@ -65,10 +68,12 @@ class MainActivity : AppCompatActivity() {
         builder.setView(view)
         builder.setPositiveButton("Dodaj") { dialog, _ ->
             validateDate(dayPicker, monthPicker, yearPicker)
+            Log.v("PO WYBRANIU DATY ", "${dayPicker.value} ${monthPicker.value} ${yearPicker.value}")
             val task = TaskItem(
                 title = title.text.toString(),
                 description = description.text.toString(),
                 notificationEnabled = notification.isChecked,
+                deadline = setDateToTimestamp(dayPicker, monthPicker, yearPicker)
 //                category = category.text.toString(),
 //                attachments = attachments.text.toString()
             )
@@ -98,7 +103,6 @@ class MainActivity : AppCompatActivity() {
 
         monthPicker.setOnValueChangedListener { _, _, _ -> validateDate(dayPicker, monthPicker, yearPicker) }
         yearPicker.setOnValueChangedListener { _, _, _ -> validateDate(dayPicker, monthPicker, yearPicker) }
-
     }
 
     private fun validateDate(dayPicker: NumberPicker, monthPicker: NumberPicker, yearPicker: NumberPicker) {
@@ -106,12 +110,29 @@ class MainActivity : AppCompatActivity() {
         val year = yearPicker.value
 
         when (month) {
-            // For February, check if the year is a leap year
             2 -> dayPicker.maxValue = if (year % 4 == 0 && (year % 100 != 0 || year % 400 == 0)) 29 else 28
-            // For April, June, September and November, set max day to 30
             4, 6, 9, 11 -> dayPicker.maxValue = 30
-            // For the rest of the months, set max day to 31
             else -> dayPicker.maxValue = 31
         }
+
+        val today = LocalDate.now()
+        val selectedDate = LocalDate.of(yearPicker.value, monthPicker.value, dayPicker.value)
+
+        if (selectedDate.isBefore(today)) {
+            dayPicker.value = today.dayOfMonth
+            monthPicker.value = today.monthValue
+            yearPicker.value = today.year
+        }
+    }
+
+
+    private fun setDateToTimestamp(dayPicker: NumberPicker, monthPicker: NumberPicker, yearPicker: NumberPicker): Long{
+        val day = dayPicker.value
+        val month = monthPicker.value
+        val year = yearPicker.value
+
+        val date = LocalDate.of(year, month, day)
+        val zonedDateTime = date.atStartOfDay(ZoneId.systemDefault())
+        return zonedDateTime.toInstant().toEpochMilli()
     }
 }

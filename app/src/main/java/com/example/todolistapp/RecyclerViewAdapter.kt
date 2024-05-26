@@ -5,11 +5,15 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 class RecyclerViewAdapter(private val dataList: List<TaskItem>) : RecyclerView.Adapter<RecyclerViewAdapter.ViewHolder>() {
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val textViewTitle: TextView = itemView.findViewById(R.id.title)
         val textViewDescription: TextView = itemView.findViewById(R.id.description)
+        val deadlineDay: TextView = itemView.findViewById(R.id.deadline)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -28,5 +32,13 @@ class RecyclerViewAdapter(private val dataList: List<TaskItem>) : RecyclerView.A
         val currentItem = dataList[position]
         holder.textViewTitle.text = currentItem.title
         holder.textViewDescription.text = currentItem.description
+        holder.deadlineDay.text = convertFromTimestamp(currentItem.deadline)
+    }
+
+    private fun convertFromTimestamp(date: Long): String {
+        val instant = Instant.ofEpochMilli(date)
+        val zonedDateTime = instant.atZone(ZoneId.systemDefault())
+        val formatter = DateTimeFormatter.ofPattern("dd MM yyyy")
+        return formatter.format(zonedDateTime)
     }
 }
