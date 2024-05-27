@@ -35,16 +35,8 @@ class MainActivity : AppCompatActivity() {
         adapter = RecyclerViewAdapter(taskList)
         recyclerView.adapter = adapter
 
-//        val task1 = TaskItem("Tytuł", "Opis", true)
-//        val task2 = TaskItem("Tytuł", "Opis", true)
-
-//        taskList.add(task1)
-//        taskList.add(task2)
-
         val addBtn: FloatingActionButton = findViewById(R.id.floatingButton)
         addBtn.setOnClickListener { view ->
-//            Snackbar.make(view, "Test", Snackbar.LENGTH_LONG)
-//                .setAction("Action", null).show()
             addTask(this)
         }
     }

@@ -3,4 +3,6 @@
     <string name="toDoTitle">Lista To Do</string>
     <string name="title">Tytuł</string>
     <string name="description">Opis</string>
+    <string name="editText">Edytuj</string>
+    <string name="confirmText">OK</string>
 </resources>

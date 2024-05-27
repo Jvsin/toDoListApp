@@ -7,7 +7,7 @@ data class TaskItem(
     val deadline: Long,
 //    val status: TaskStatus,
     val notificationEnabled: Boolean,
-//    val category: String,
+//    val category: Categories,
 //    val attachments: List<Attachment>
 )
 
@@ -24,4 +24,10 @@ data class Attachment(
 enum class AttachmentType {
     IMAGE,
     FILE
+}
+
+enum class Categories {
+    SCHOOL,
+    WORK,
+    HOME
 }
