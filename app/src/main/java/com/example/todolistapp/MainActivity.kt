@@ -2,11 +2,15 @@ package com.example.todolistapp
 
 import android.app.AlertDialog
 import android.content.Context
+import android.graphics.BitmapFactory
 import android.os.Bundle
+import android.os.Environment
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
+import android.widget.AdapterView
 import android.widget.EditText
+import android.widget.ImageView
 import android.widget.NumberPicker
 import android.widget.Spinner
 import android.widget.Switch
@@ -17,6 +21,10 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
+import java.io.File
+import java.io.FileInputStream
+import java.io.FileOutputStream
+import java.io.IOException
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -49,9 +57,25 @@ class MainActivity : AppCompatActivity() {
         val title = view.findViewById<EditText>(R.id.title)
         val description = view.findViewById<EditText>(R.id.description)
         val notification = view.findViewById<SwitchCompat>(R.id.notification)
-//        val category = view.findViewById<EditText>(R.id.category)
+
+        val category = view.findViewById<Spinner>(R.id.category)
+        var selectedCategory: Categories = Categories.OTHERS
+        category.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>, view: View, position: Int, id: Long) {
+                val check = parent.getItemAtPosition(position).toString()
+                selectedCategory = when (check) {
+                    "Studia" -> Categories.SCHOOL
+                    "Praca" -> Categories.WORK
+                    "Dom" -> Categories.HOME
+                    else -> Categories.OTHERS
+                }
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>) {
+                selectedCategory = Categories.OTHERS
+            }
+        }
 //        val attachments = view.findViewById<EditText>(R.id.attachments)
-//        setDataPicker(view)
         val dayPicker = view.findViewById<NumberPicker>(R.id.dayPicker)
         val monthPicker = view.findViewById<NumberPicker>(R.id.monthPicker)
         val yearPicker = view.findViewById<NumberPicker>(R.id.yearPicker)
@@ -65,10 +89,13 @@ class MainActivity : AppCompatActivity() {
                 title = title.text.toString(),
                 description = description.text.toString(),
                 notificationEnabled = notification.isChecked,
-                deadline = setDateToTimestamp(dayPicker, monthPicker, yearPicker)
-//                category = category.text.toString(),
+                creationTime = System.currentTimeMillis(),
+                deadline = setDateToTimestamp(dayPicker, monthPicker, yearPicker),
+                category = selectedCategory,
+                status = TaskStatus.INCOMPLETE
 //                attachments = attachments.text.toString()
             )
+            Log.v("DODANIE TASKA: ", task.toString())
             taskList.add(task)
             adapter.notifyDataSetChanged()
             Snackbar.make(view, "Dodano nowe zadanie", Snackbar.LENGTH_LONG)
@@ -127,4 +154,50 @@ class MainActivity : AppCompatActivity() {
         val zonedDateTime = date.atStartOfDay(ZoneId.systemDefault())
         return zonedDateTime.toInstant().toEpochMilli()
     }
+
+    fun saveFileToExternalStorage(filename: String, fileContent: String) {
+        // Sprawdź, czy jest dostępna pamięć zewnętrzna
+        if (Environment.MEDIA_MOUNTED == Environment.getExternalStorageState()) {
+            val file = File(Environment.getExternalStorageDirectory(), filename)
+
+            try {
+                val outputStream = FileOutputStream(file)
+                outputStream.write(fileContent.toByteArray())
+                outputStream.close()
+            } catch (e: IOException) {
+                e.printStackTrace()
+            }
+        } else {
+            println("Pamięć zewnętrzna nie jest dostępna")
+        }
+    }
+    fun readFileFromExternalStorage(filename: String): String? {
+        var fileContent: String? = null
+
+        // Sprawdź, czy jest dostępna pamięć zewnętrzna
+        if (Environment.MEDIA_MOUNTED == Environment.getExternalStorageState() || Environment.MEDIA_MOUNTED_READ_ONLY == Environment.getExternalStorageState()) {
+            val file = File(Environment.getExternalStorageDirectory(), filename)
+
+            try {
+                val inputStream = FileInputStream(file)
+                fileContent = inputStream.bufferedReader().use { it.readText() }
+                inputStream.close()
+            } catch (e: IOException) {
+                e.printStackTrace()
+            }
+        } else {
+            println("Pamięć zewnętrzna nie jest dostępna")
+        }
+
+        return fileContent
+    }
+
+    fun displayImageFromExternalStorage(filename: String, imageView: ImageView) {
+        val file = File(Environment.getExternalStorageDirectory(), filename)
+        if (file.exists()) {
+            val bitmap = BitmapFactory.decodeFile(file.absolutePath)
+            imageView.setImageBitmap(bitmap)
+        }
+    }
+
 }

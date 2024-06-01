@@ -76,6 +76,7 @@ class RecyclerViewAdapter(private val dataList: List<TaskItem>) : RecyclerView.A
         private lateinit var deadline: TextView
         private lateinit var daysToGo: TextView
         private lateinit var editButton: Button
+        private lateinit var confirmButton: Button
         override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
             val view = inflater.inflate(R.layout.dialog_task_view, container, false)
 
@@ -83,6 +84,7 @@ class RecyclerViewAdapter(private val dataList: List<TaskItem>) : RecyclerView.A
             description = view.findViewById(R.id.description)
             deadline = view.findViewById(R.id.deadline)
             daysToGo = view.findViewById(R.id.daysToGo)
+            editButton = view.findViewById(R.id.editButton)
             editButton = view.findViewById(R.id.editButton)
 
             title.text = arguments?.getString("title")

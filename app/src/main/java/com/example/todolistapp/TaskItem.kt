@@ -3,11 +3,11 @@ package com.example.todolistapp
 data class TaskItem(
     val title: String,
     val description: String,
-//    val creationTime: Long,
+    val creationTime: Long,
     val deadline: Long,
-//    val status: TaskStatus,
+    val status: TaskStatus,
     val notificationEnabled: Boolean,
-//    val category: Categories,
+    val category: Categories,
 //    val attachments: List<Attachment>
 )
 
@@ -29,5 +29,6 @@ enum class AttachmentType {
 enum class Categories {
     SCHOOL,
     WORK,
-    HOME
+    HOME,
+    OTHERS
 }
