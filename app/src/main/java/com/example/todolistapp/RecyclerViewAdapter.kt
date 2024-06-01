@@ -109,7 +109,7 @@ class RecyclerViewAdapter(private val dataList: List<TaskItem>) : RecyclerView.A
                 editDialog.setPositiveButton("Zapisz") { _, _ ->
                     title.text = titleEdit.text
                     description.text = descriptionEdit.text
-                    deadline.text = deadlineEdit.text
+//                    deadline.text = deadlineEdit.text
                 }
                 editDialog.setNegativeButton("Anuluj") { dialog, _ ->
                     dialog.dismiss()

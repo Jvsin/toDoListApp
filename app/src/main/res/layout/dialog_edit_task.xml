@@ -9,25 +9,69 @@
         android:id="@+id/titleEdit"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Tytuł"/>
+        android:hint="Nowy tytuł"/>
 
     <EditText
         android:id="@+id/descriptionEdit"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Opis"
+        android:hint="Nowy opis"
         android:inputType="textMultiLine"
         android:minLines="3"
         android:gravity="top|start"
         android:overScrollMode="ifContentScrolls"
         android:scrollbarStyle="insideInset"
         android:scrollbars="vertical"/>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/categoryLayout"
+        android:orientation="vertical">
 
-    <EditText
+        <TextView
+            android:gravity="center"
+            android:id="@+id/category_label"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Kategoria: " />
+
+        <Spinner
+            android:id="@+id/category"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:entries="@array/category_array"/>
+    </LinearLayout>
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Nowy termin: "
+        android:layout_gravity="center"/>
+
+    <LinearLayout
         android:id="@+id/deadlineEdit"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Data końcowa"
-        android:inputType="date"/>
+        android:orientation="horizontal"
+        android:weightSum="6" >
+
+        <NumberPicker
+            android:id="@+id/dayPicker"
+            android:layout_weight="2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+        <NumberPicker
+            android:id="@+id/monthPicker"
+            android:layout_width="wrap_content"
+            android:layout_weight="2"
+            android:layout_height="wrap_content" />
+
+        <NumberPicker
+            android:id="@+id/yearPicker"
+            android:layout_width="wrap_content"
+            android:layout_weight="2"
+            android:layout_height="wrap_content" />
+
+    </LinearLayout>
 
 </LinearLayout>
