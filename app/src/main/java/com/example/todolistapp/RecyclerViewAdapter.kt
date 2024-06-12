@@ -7,14 +7,21 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
+import android.widget.NumberPicker
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.DialogFragment
 import androidx.recyclerview.widget.RecyclerView
 import java.time.Instant
+import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
+
+interface OnItemClickListener {
+    fun onItemClick(item: TaskItem)
+}
 
 class RecyclerViewAdapter(private val dataList: List<TaskItem>) : RecyclerView.Adapter<RecyclerViewAdapter.ViewHolder>() {
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -99,17 +106,22 @@ class RecyclerViewAdapter(private val dataList: List<TaskItem>) : RecyclerView.A
 
                 val titleEdit: EditText = dialogView.findViewById(R.id.titleEdit)
                 val descriptionEdit: EditText = dialogView.findViewById(R.id.descriptionEdit)
-                val deadlineEdit: EditText = dialogView.findViewById(R.id.deadlineEdit)
+//                val deadlineEdit: EditText = dialogView.findViewById(R.id.deadlineEdit)
+
+                val dayPicker = dialogView.findViewById<NumberPicker>(R.id.dayPicker)
+                val monthPicker = dialogView.findViewById<NumberPicker>(R.id.monthPicker)
+                val yearPicker = dialogView.findViewById<NumberPicker>(R.id.yearPicker)
+                setDataPicker(dayPicker, monthPicker, yearPicker)
 
                 titleEdit.setText(title.text)
                 descriptionEdit.setText(description.text)
-                deadlineEdit.setText(deadline.text)
+//                deadlineEdit.setText(deadline.text)
 
                 editDialog.setView(dialogView)
                 editDialog.setPositiveButton("Zapisz") { _, _ ->
                     title.text = titleEdit.text
                     description.text = descriptionEdit.text
-//                    deadline.text = deadlineEdit.text
+                    deadline.text = setDateToTimestamp(dayPicker, monthPicker, yearPicker).toString()
                 }
                 editDialog.setNegativeButton("Anuluj") { dialog, _ ->
                     dialog.dismiss()
@@ -127,15 +139,49 @@ class RecyclerViewAdapter(private val dataList: List<TaskItem>) : RecyclerView.A
             return view
         }
 
-//        override fun onStart() {
-//            super.onStart()
-//            val dialog = dialog
-//            if (dialog != null) {
-//                val width = ViewGroup.LayoutParams.MATCH_PARENT
-//                val height = ViewGroup.LayoutParams.MATCH_PARENT
-//                dialog.window?.setLayout(width, height)
-//            }
-//        }
+        private fun setDataPicker(dayPicker: NumberPicker, monthPicker: NumberPicker, yearPicker: NumberPicker) {
+            dayPicker.minValue = 1
+            dayPicker.maxValue = 31
+
+            monthPicker.minValue = 1
+            monthPicker.maxValue = 12
+
+            yearPicker.minValue = LocalDateTime.now().year
+            yearPicker.maxValue = 2100
+
+            monthPicker.setOnValueChangedListener { _, _, _ -> validateDate(dayPicker, monthPicker, yearPicker) }
+            yearPicker.setOnValueChangedListener { _, _, _ -> validateDate(dayPicker, monthPicker, yearPicker) }
+        }
+
+        private fun validateDate(dayPicker: NumberPicker, monthPicker: NumberPicker, yearPicker: NumberPicker) {
+            val month = monthPicker.value
+            val year = yearPicker.value
+
+            when (month) {
+                2 -> dayPicker.maxValue = if (year % 4 == 0 && (year % 100 != 0 || year % 400 == 0)) 29 else 28
+                4, 6, 9, 11 -> dayPicker.maxValue = 30
+                else -> dayPicker.maxValue = 31
+            }
+
+            val today = LocalDate.now()
+            val selectedDate = LocalDate.of(yearPicker.value, monthPicker.value, dayPicker.value)
+
+            if (selectedDate.isBefore(today)) {
+                dayPicker.value = today.dayOfMonth
+                monthPicker.value = today.monthValue
+                yearPicker.value = today.year
+            }
+        }
+
+        private fun setDateToTimestamp(dayPicker: NumberPicker, monthPicker: NumberPicker, yearPicker: NumberPicker): Long{
+            val day = dayPicker.value
+            val month = monthPicker.value
+            val year = yearPicker.value
+
+            val date = LocalDate.of(year, month, day)
+            val zonedDateTime = date.atStartOfDay(ZoneId.systemDefault())
+            return zonedDateTime.toInstant().toEpochMilli()
+        }
 
         companion object {
             fun newInstance(title: String, description: String, deadline: String, daysToGo: String): TaskDialog {
@@ -149,5 +195,7 @@ class RecyclerViewAdapter(private val dataList: List<TaskItem>) : RecyclerView.A
                 return fragment
             }
         }
+
+
     }
 }
