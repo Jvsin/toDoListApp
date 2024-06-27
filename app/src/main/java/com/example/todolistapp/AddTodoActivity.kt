@@ -17,8 +17,7 @@ import java.util.*
 class AddTodoActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityAddTodoBinding
-    private lateinit var todo: Todo
-    private lateinit var oldTodo: Todo
+    private lateinit var editToDo: Todo
     var isUpdate = false
 
 
@@ -28,13 +27,13 @@ class AddTodoActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         try {
-            oldTodo = intent.getSerializableExtra("current_todo") as Todo
-            binding.etTitle.setText(oldTodo.title)
-            binding.etNote.setText(oldTodo.note)
-            binding.switchIsFinished.isChecked = oldTodo.isFinished == true
-            binding.switchNotifications.isChecked = oldTodo.notifications == true
-            oldTodo.category?.let { binding.spinnerCategory.setSelection(it) }
-            oldTodo.deadline?.let {
+            editToDo = intent.getSerializableExtra("current_todo") as Todo
+            binding.etTitle.setText(editToDo.title)
+            binding.etNote.setText(editToDo.note)
+            binding.switchIsFinished.isChecked = editToDo.isFinished == true
+            binding.switchNotifications.isChecked = editToDo.notifications == true
+            editToDo.category?.let { binding.spinnerCategory.setSelection(it) }
+            editToDo.deadline?.let {
                 val calendar = getCalendarFromDateString(it)
                 binding.btnPickDateTime.text = SimpleDateFormat("EEE, d MMM yyyy HH:mm a", Locale.getDefault()).format(calendar.time)
             }
@@ -60,7 +59,7 @@ class AddTodoActivity : AppCompatActivity() {
             if (title.isNotEmpty() && todoDescription.isNotEmpty()) {
                 val formatter = SimpleDateFormat("EEE, d MMM yyyy HH:mm a")
                 val todo = if (isUpdate) {
-                    Todo(oldTodo.id, title, todoDescription, formatter.format(Date()), deadline, category, isFinished, notifications)
+                    Todo(editToDo.id, title, todoDescription, formatter.format(Date()), deadline, category, isFinished, notifications)
                 } else {
                     Todo(null, title, todoDescription, formatter.format(Date()), deadline, category, isFinished, notifications)
                 }
@@ -75,7 +74,7 @@ class AddTodoActivity : AppCompatActivity() {
 
         binding.imgDelete.setOnClickListener {
             val intent = Intent()
-            intent.putExtra("todo", oldTodo)
+            intent.putExtra("todo", editToDo)
             intent.putExtra("delete_todo", true)
             setResult(Activity.RESULT_OK, intent)
             finish()

@@ -20,6 +20,7 @@
         android:id="@+id/checkbox_hide_finished"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:backgroundTint="@color/green"
         android:text="Schowaj ukończone zadania"
         android:paddingTop="16dp"/>
 </LinearLayout>
