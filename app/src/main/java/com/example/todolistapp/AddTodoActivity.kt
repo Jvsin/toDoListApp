@@ -69,7 +69,7 @@ class AddTodoActivity : AppCompatActivity() {
                 setResult(Activity.RESULT_OK, intent)
                 finish()
             } else {
-                Toast.makeText(this@AddTodoActivity, "Please enter some data", Toast.LENGTH_LONG).show()
+                Toast.makeText(this@AddTodoActivity, "Wpisz nazwę zadania", Toast.LENGTH_LONG).show()
             }
         }
 

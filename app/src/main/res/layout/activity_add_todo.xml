@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:backgroundTint="@color/cyan"
     tools:context=".AddTodoActivity">
 
     <androidx.appcompat.widget.Toolbar
@@ -13,6 +14,7 @@
         android:background="@color/white"
         android:minHeight="?attr/actionBarSize"
         android:theme="?attr/actionBarTheme"
+        android:backgroundTint="@color/blue"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
@@ -59,7 +61,7 @@
         android:layout_marginEnd="16dp"
         android:background="@null"
         android:ems="10"
-        android:hint="Title"
+        android:hint="Podaj nazwę..."
         android:textSize="26sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -73,7 +75,7 @@
         android:background="@null"
         android:ems="10"
         android:gravity="top"
-        android:hint="Todo Note"
+        android:hint="Podaj opis..."
         android:inputType="textMultiLine"
         android:lineSpacingMultiplier="1.8"
         app:layout_constraintEnd_toEndOf="@+id/et_title"
@@ -85,9 +87,10 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Ustaw datę i godzinę"
+        android:backgroundTint="@color/blue"
         app:layout_constraintTop_toBottomOf="@id/et_note"
         app:layout_constraintStart_toStartOf="parent"
-        android:onClick="onPickDateTimeClick" />
+        android:onClick="onPickDateTimeClick"/>
 
     <Spinner
         android:id="@+id/spinner_category"
@@ -111,6 +114,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Ukończono"
+            android:backgroundTint="@color/blue"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             tools:ignore="UseSwitchCompatOrMaterialXml" />
@@ -120,6 +124,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Powiadomienia"
+            android:backgroundTint="@color/blue"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             tools:ignore="UseSwitchCompatOrMaterialXml" />
