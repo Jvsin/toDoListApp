@@ -1,12 +1,17 @@
 package com.example.todolistapp
 
 import android.app.Activity
+import android.app.AlertDialog
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
+import android.view.LayoutInflater
+import android.widget.ArrayAdapter
+import android.widget.CheckBox
+import android.widget.Spinner
 import androidx.appcompat.widget.SearchView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.lifecycle.ViewModelProvider
@@ -27,6 +32,9 @@ class MainActivity : AppCompatActivity(), TodoAdapter.TodoClickListener {
     private lateinit var database: TodoDatabase
     lateinit var viewModel: TodoViewModel
     lateinit var adapter: TodoAdapter
+
+    private var hideFinishedTasks = false
+    private var selectedCategory = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -60,6 +68,10 @@ class MainActivity : AppCompatActivity(), TodoAdapter.TodoClickListener {
                 return false
             }
         })
+
+        binding.fabSettings.setOnClickListener {
+            showSettingsDialog()
+        }
     }
 
     private fun initUI() {
@@ -124,5 +136,46 @@ class MainActivity : AppCompatActivity(), TodoAdapter.TodoClickListener {
             e.printStackTrace()
             null
         }
+    }
+
+    private fun showSettingsDialog() {
+        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_settings, null)
+        val categorySpinner = dialogView.findViewById<Spinner>(R.id.spinner_category)
+        val showFinishedCheckBox = dialogView.findViewById<CheckBox>(R.id.checkbox_hide_finished)
+
+        val categories = resources.getStringArray(R.array.category_array_sorting)
+        val spinnerAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, categories)
+        spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        categorySpinner.adapter = spinnerAdapter
+
+        categorySpinner.setSelection(selectedCategory)
+        showFinishedCheckBox.isChecked = hideFinishedTasks
+
+        AlertDialog.Builder(this)
+            .setView(dialogView)
+            .setTitle("Filtruj zadania")
+            .setPositiveButton("OK") { _, _ ->
+                selectedCategory = categorySpinner.selectedItemPosition
+                hideFinishedTasks = showFinishedCheckBox.isChecked
+                val filteredList = filterTasks(viewModel.allTodo.value ?: emptyList())
+                adapter.updateList(filteredList)
+            }
+            .setNegativeButton("Anuluj", null)
+            .create()
+            .show()
+    }
+
+    private fun filterTasks(list: List<Todo>): List<Todo> {
+        var filteredList = list
+
+        if (hideFinishedTasks) {
+            filteredList = filteredList.filter { it.isFinished == false}
+        }
+
+        if (selectedCategory > 0) {
+            filteredList = filteredList.filter { it.category == selectedCategory }
+        }
+
+        return filteredList.sortedBy { parseDate(it.deadline ?: "") }
     }
 }
