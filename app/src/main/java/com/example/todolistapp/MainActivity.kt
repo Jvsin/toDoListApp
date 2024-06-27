@@ -4,7 +4,10 @@ import android.app.Activity
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.util.Log
+import androidx.appcompat.widget.SearchView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -42,6 +45,18 @@ class MainActivity : AppCompatActivity(), TodoAdapter.TodoClickListener {
         }
 
         database = TodoDatabase.getDatabase(this)
+
+        binding.searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                filterList(query ?: "")
+                return false
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                filterList(newText ?: "")
+                return false
+            }
+        })
     }
 
     private fun initUI() {
@@ -89,5 +104,12 @@ class MainActivity : AppCompatActivity(), TodoAdapter.TodoClickListener {
         val intent = Intent(this@MainActivity, AddTodoActivity::class.java)
         intent.putExtra("current_todo", todo)
         updateOrDeleteTodo.launch(intent)
+    }
+
+    private fun filterList(query: String) {
+        val filteredList = viewModel.allTodo.value?.filter {
+            it.title?.contains(query, ignoreCase = true) == true
+        }
+        adapter.updateList(filteredList ?: emptyList())
     }
 }

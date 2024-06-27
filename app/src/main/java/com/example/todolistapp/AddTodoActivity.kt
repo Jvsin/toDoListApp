@@ -33,9 +33,8 @@ class AddTodoActivity : AppCompatActivity() {
             binding.etNote.setText(oldTodo.note)
             binding.switchIsFinished.isChecked = oldTodo.isFinished == true
             binding.switchNotifications.isChecked = oldTodo.notifications == true
-            oldTodo.category?.let { binding.spinnerCategory.setSelection(it) } // Ustawienie wybranej kategorii jako indeks
+            oldTodo.category?.let { binding.spinnerCategory.setSelection(it) }
             oldTodo.deadline?.let {
-                // Convert deadline string to Date and update button text
                 val calendar = getCalendarFromDateString(it)
                 binding.btnPickDateTime.text = SimpleDateFormat("EEE, d MMM yyyy HH:mm a", Locale.getDefault()).format(calendar.time)
             }
