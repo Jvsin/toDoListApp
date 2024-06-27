@@ -16,6 +16,9 @@ import com.example.todolistapp.entities.TodoDatabase
 import com.example.todolistapp.databinding.ActivityMainBinding
 import com.example.todolistapp.entities.Todo
 import com.example.todolistapp.TodoViewModel
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 
 class MainActivity : AppCompatActivity(), TodoAdapter.TodoClickListener {
@@ -109,7 +112,17 @@ class MainActivity : AppCompatActivity(), TodoAdapter.TodoClickListener {
     private fun filterList(query: String) {
         val filteredList = viewModel.allTodo.value?.filter {
             it.title?.contains(query, ignoreCase = true) == true
-        }
+        }?.sortedBy { parseDate(it.deadline ?: "") }
         adapter.updateList(filteredList ?: emptyList())
+    }
+
+    private fun parseDate(dateString: String): Date? {
+        val formatter = SimpleDateFormat("EEE, d MMM yyyy HH:mm a", Locale.getDefault())
+        return try {
+            formatter.parse(dateString)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
     }
 }

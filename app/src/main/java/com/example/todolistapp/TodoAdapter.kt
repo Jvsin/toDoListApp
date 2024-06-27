@@ -9,6 +9,9 @@ import android.widget.TextView
 import androidx.cardview.widget.CardView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.todolistapp.entities.Todo
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class TodoAdapter(private val context: Context,val listener: TodoClickListener):
     RecyclerView.Adapter<TodoAdapter.TodoViewHolder>(){
@@ -38,7 +41,7 @@ class TodoAdapter(private val context: Context,val listener: TodoClickListener):
 
     fun updateList(newList: List<Todo>){
         todoList.clear()
-        todoList.addAll(newList)
+        todoList.addAll(newList.sortedBy { parseDate(it.deadline ?: "") })
         notifyDataSetChanged()
     }
 
@@ -52,5 +55,15 @@ class TodoAdapter(private val context: Context,val listener: TodoClickListener):
     //listener sluzący do otwierania edycji taska po nacisnieciu na element w recycleview
     interface TodoClickListener {
         fun onItemClicked(todo: Todo)
+    }
+
+    private fun parseDate(dateString: String): Date? {
+        val formatter = SimpleDateFormat("EEE, d MMM yyyy HH:mm a", Locale.getDefault())
+        return try {
+            formatter.parse(dateString)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
     }
 }
