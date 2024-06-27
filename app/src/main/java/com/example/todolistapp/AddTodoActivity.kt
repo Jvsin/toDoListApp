@@ -14,12 +14,25 @@ import com.example.todolistapp.entities.Todo
 import java.text.SimpleDateFormat
 import java.util.*
 
+import android.annotation.SuppressLint
+import android.app.AlarmManager
+import android.app.Notification
+import android.app.PendingIntent
+import android.app.NotificationManager
+import android.content.Context
+import android.os.Build
+import android.provider.Settings
+import android.util.Log
+import androidx.core.app.NotificationManagerCompat
+import java.text.ParseException
+
 class AddTodoActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityAddTodoBinding
     private lateinit var editToDo: Todo
+    private lateinit var actualTodo: Todo
     var isUpdate = false
-
+    private var notificationTime : Int = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -28,6 +41,10 @@ class AddTodoActivity : AppCompatActivity() {
 
         try {
             editToDo = intent.getSerializableExtra("current_todo") as Todo
+            notificationTime = intent.getSerializableExtra("notification_time") as Int
+            Log.v("powiadomienia", notificationTime.toString())
+
+            actualTodo = editToDo
             binding.etTitle.setText(editToDo.title)
             binding.etNote.setText(editToDo.note)
             binding.switchIsFinished.isChecked = editToDo.isFinished == true
@@ -63,6 +80,12 @@ class AddTodoActivity : AppCompatActivity() {
                 } else {
                     Todo(null, title, todoDescription, formatter.format(Date()), deadline, category, isFinished, notifications)
                 }
+                actualTodo = todo
+                if (deadline !== "" && notifications) // && deadline.length == 16
+                    if (checkNotificationPermissions(this)) {
+                        // Schedule a notification
+                        scheduleNotification(title, todoDescription)
+                    }
                 val intent = Intent()
                 intent.putExtra("todo", todo)
                 setResult(Activity.RESULT_OK, intent)
@@ -137,6 +160,83 @@ class AddTodoActivity : AppCompatActivity() {
         calendar.set(datePicker.year, datePicker.month, datePicker.dayOfMonth)
         val formatter = SimpleDateFormat("EEE, d MMM yyyy HH:mm a")
         return formatter.format(calendar.time)
+    }
+
+    @SuppressLint("ScheduleExactAlarm")
+    private fun scheduleNotification(title: String, message: String) {
+        val intent = Intent(applicationContext, Notification::class.java)
+        intent.putExtra("current_todo", actualTodo)
+        intent.putExtra("notification_time", notificationTime)
+
+        val pendingIntent = PendingIntent.getBroadcast(
+            applicationContext,
+            notificationID,
+            intent,
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+        )
+
+        val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
+
+        val time = actualTodo.deadline?.let { getTime(it) }
+        Log.v("powiadomienia", time.toString())
+        if (time != null) {
+            alarmManager.setExactAndAllowWhileIdle(
+                AlarmManager.RTC_WAKEUP,
+                time,
+                pendingIntent
+            )
+        }
+
+    }
+
+    fun checkNotificationPermissions(context: Context): Boolean {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val notificationManager =
+                context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
+            val isEnabled = notificationManager.areNotificationsEnabled()
+
+            if (!isEnabled) {
+                val intent = Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
+                intent.putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
+                context.startActivity(intent)
+
+                return false
+            }
+        } else {
+            val areEnabled = NotificationManagerCompat.from(context).areNotificationsEnabled()
+
+            if (!areEnabled) {
+                val intent = Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
+                intent.putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
+                context.startActivity(intent)
+                return false
+            }
+        }
+        return true
+    }
+
+    private fun getTime(date: String): Long {
+        val formatter = SimpleDateFormat("EEE, d MMM yyyy HH:mm a", Locale.getDefault())
+        val calendar = Calendar.getInstance()
+
+        try {
+            val parsedDate = formatter.parse(date)
+            if (parsedDate != null) {
+                calendar.time = parsedDate
+                val year = calendar.get(Calendar.YEAR)
+                val month = calendar.get(Calendar.MONTH)
+                val day = calendar.get(Calendar.DAY_OF_MONTH)
+                val hours = calendar.get(Calendar.HOUR_OF_DAY)
+                val minutes = calendar.get(Calendar.MINUTE)
+                calendar.set(year, month, day, hours, minutes)
+                Log.v("powiadomienia", calendar.toString())
+                return calendar.timeInMillis - notificationTime * 60 * 1000
+            }
+        } catch (e: ParseException) {
+            e.printStackTrace()
+        }
+        return 0
     }
 
 

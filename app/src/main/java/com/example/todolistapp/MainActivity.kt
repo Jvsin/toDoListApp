@@ -25,6 +25,13 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.content.Context
+import android.os.Build
+import android.provider.Settings
+import androidx.annotation.RequiresApi
+import androidx.core.app.NotificationManagerCompat
 
 class MainActivity : AppCompatActivity(), TodoAdapter.TodoClickListener {
 
@@ -36,11 +43,15 @@ class MainActivity : AppCompatActivity(), TodoAdapter.TodoClickListener {
     private var hideFinishedTasks = false
     private var selectedCategory = 0
 
+    private var notificationTime: Int = 1
+    private var notificationsTimeTable: IntArray = intArrayOf(1, 5, 10, 15)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        createNotificationChannel()
         initUI()
 
         viewModel = ViewModelProvider(
@@ -118,6 +129,7 @@ class MainActivity : AppCompatActivity(), TodoAdapter.TodoClickListener {
     override fun onItemClicked(todo: Todo) {
         val intent = Intent(this@MainActivity, AddTodoActivity::class.java)
         intent.putExtra("current_todo", todo)
+        intent.putExtra("notification_time", notificationsTimeTable[notificationTime])
         updateOrDeleteTodo.launch(intent)
     }
 
@@ -142,13 +154,20 @@ class MainActivity : AppCompatActivity(), TodoAdapter.TodoClickListener {
         val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_settings, null)
         val categorySpinner = dialogView.findViewById<Spinner>(R.id.spinner_category)
         val showFinishedCheckBox = dialogView.findViewById<CheckBox>(R.id.checkbox_hide_finished)
+        val notificationsSpinner = dialogView.findViewById<Spinner>(R.id.spinner_notifications)
 
         val categories = resources.getStringArray(R.array.category_array_sorting)
-        val spinnerAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, categories)
-        spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        categorySpinner.adapter = spinnerAdapter
+        val categorySpinnerAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, categories)
+        categorySpinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        categorySpinner.adapter = categorySpinnerAdapter
+
+        val notificationsTimes = resources.getStringArray(R.array.notification_times)
+        val notsSpinnerAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, notificationsTimes)
+        notsSpinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        notificationsSpinner.adapter = notsSpinnerAdapter
 
         categorySpinner.setSelection(selectedCategory)
+        notificationsSpinner.setSelection(notificationTime)
         showFinishedCheckBox.isChecked = hideFinishedTasks
 
         AlertDialog.Builder(this)
@@ -157,6 +176,7 @@ class MainActivity : AppCompatActivity(), TodoAdapter.TodoClickListener {
             .setPositiveButton("OK") { _, _ ->
                 selectedCategory = categorySpinner.selectedItemPosition
                 hideFinishedTasks = showFinishedCheckBox.isChecked
+                notificationTime = notificationsSpinner.selectedItemPosition
                 val filteredList = filterTasks(viewModel.allTodo.value ?: emptyList())
                 adapter.updateList(filteredList)
             }
@@ -177,5 +197,20 @@ class MainActivity : AppCompatActivity(), TodoAdapter.TodoClickListener {
         }
 
         return filteredList.sortedBy { parseDate(it.deadline ?: "") }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun createNotificationChannel() {
+        // Create a notification channel for devices running
+        // Android Oreo (API level 26) and above
+        val name = "Notify Channel"
+        val desc = "A Description of the Channel"
+        val importance = NotificationManager.IMPORTANCE_DEFAULT
+        val channel = NotificationChannel(channelID, name, importance)
+        channel.description = desc
+
+        // Get the NotificationManager service and create the channel
+        val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.createNotificationChannel(channel)
     }
 }
