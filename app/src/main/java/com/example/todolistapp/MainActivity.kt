@@ -34,6 +34,7 @@ class MainActivity : AppCompatActivity(), TodoAdapter.TodoClickListener {
             ViewModelProvider.AndroidViewModelFactory.getInstance(application)
         ).get(TodoViewModel::class.java)
 
+        //observer do aktualizowania listy w adapterze w przypadku zmiany
         viewModel.allTodo.observe(this) { list ->
             list?.let {
                 adapter.updateList(list)
@@ -50,6 +51,7 @@ class MainActivity : AppCompatActivity(), TodoAdapter.TodoClickListener {
         adapter = TodoAdapter(this, this)
         binding.recyclerView.adapter = adapter
 
+        // nawiązanie kontaktu z AddTodo i dodanie taska do bazy poprzez viewModel
         val getContent =
             registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
                 if (result.resultCode == Activity.RESULT_OK) {
@@ -67,6 +69,8 @@ class MainActivity : AppCompatActivity(), TodoAdapter.TodoClickListener {
 
     }
 
+    // wykrywa kontakt aktywności edycji lub dodawania, po czym aktualizuje taska w bazie danych przy
+    // pomocy viewModel
     private val updateOrDeleteTodo =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == Activity.RESULT_OK) {

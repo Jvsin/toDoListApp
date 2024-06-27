@@ -22,7 +22,6 @@ class TodoAdapter(private val context: Context,val listener: TodoClickListener):
 
     override fun onBindViewHolder(holder: TodoAdapter.TodoViewHolder, position: Int) {
         val item = todoList[position]
-        Log.v("MainActivity", item.toString())
         holder.title.text = item.title
         holder.title.isSelected = true
         holder.note.text = item.note
@@ -50,6 +49,7 @@ class TodoAdapter(private val context: Context,val listener: TodoClickListener):
         val date = itemView.findViewById<TextView>(R.id.tv_date)
     }
 
+    //listener sluzący do otwierania edycji taska po nacisnieciu na element w recycleview
     interface TodoClickListener {
         fun onItemClicked(todo: Todo)
     }

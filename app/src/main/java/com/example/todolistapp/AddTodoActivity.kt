@@ -49,6 +49,7 @@ class AddTodoActivity : AppCompatActivity() {
                 }else{
                     todo = Todo(null, title, todoDescription, formatter.format(Date()))
                 }
+                // przekazanie obiektu do mainactivity, która obłsuguje viewmodel aktualizujący baze
                 var intent = Intent()
                 intent.putExtra("todo", todo)
                 setResult(Activity.RESULT_OK, intent)
