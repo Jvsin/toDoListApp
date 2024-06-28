@@ -44,7 +44,7 @@ class MainActivity : AppCompatActivity(), TodoAdapter.TodoClickListener {
     private var selectedCategory = 0
 
     private var notificationTime: Int = 1
-    private var notificationsTimeTable: IntArray = intArrayOf(1, 5, 10, 15)
+    private var notificationsTimeTable: IntArray = intArrayOf(1, 5, 10, 15, 30)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -105,6 +105,7 @@ class MainActivity : AppCompatActivity(), TodoAdapter.TodoClickListener {
 
         binding.fabAddTodo.setOnClickListener {
             val intent = Intent(this, AddTodoActivity::class.java)
+            intent.putExtra("notification_time", notificationsTimeTable[notificationTime])
             getContent.launch(intent)
         }
 
@@ -177,6 +178,7 @@ class MainActivity : AppCompatActivity(), TodoAdapter.TodoClickListener {
                 selectedCategory = categorySpinner.selectedItemPosition
                 hideFinishedTasks = showFinishedCheckBox.isChecked
                 notificationTime = notificationsSpinner.selectedItemPosition
+                Log.v("powiadomienia", "aktualizacja: " + notificationTime.toString())
                 val filteredList = filterTasks(viewModel.allTodo.value ?: emptyList())
                 adapter.updateList(filteredList)
             }

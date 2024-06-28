@@ -58,13 +58,14 @@ class AddTodoActivity : AppCompatActivity() {
         } catch (e: Exception) {
             e.printStackTrace()
         }
-
+        notificationTime = intent.getSerializableExtra("notification_time") as Int
         if (isUpdate) {
             binding.imgDelete.visibility = View.VISIBLE
         } else {
             binding.imgDelete.visibility = View.INVISIBLE
         }
-
+        notificationTime = intent.getSerializableExtra("notification_time") as Int
+        Log.v("powiadomienia", "przy dodaniu nowego: " + notificationTime.toString())
         binding.imgCheck.setOnClickListener {
             val title = binding.etTitle.text.toString()
             val todoDescription = binding.etNote.text.toString()
@@ -178,13 +179,16 @@ class AddTodoActivity : AppCompatActivity() {
         val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
         val time = actualTodo.deadline?.let { getTime(it) }
-        Log.v("powiadomienia", time.toString())
-        if (time != null) {
+        Log.v("powiadomienia", time.toString() + ' ' + System.currentTimeMillis().toString())
+        if (time != null && time > System.currentTimeMillis()) {  // Ensure the time is in the future
             alarmManager.setExactAndAllowWhileIdle(
                 AlarmManager.RTC_WAKEUP,
                 time,
                 pendingIntent
             )
+        } else {
+            Log.e("powiadomienia", "Scheduled time is in the past or null.")
+            Toast.makeText(this@AddTodoActivity, "Powiadomienie po czasie", Toast.LENGTH_LONG).show()
         }
 
     }
@@ -230,7 +234,7 @@ class AddTodoActivity : AppCompatActivity() {
                 val hours = calendar.get(Calendar.HOUR_OF_DAY)
                 val minutes = calendar.get(Calendar.MINUTE)
                 calendar.set(year, month, day, hours, minutes)
-                Log.v("powiadomienia", calendar.toString())
+                Log.v("powiadomienia", notificationTime.toString())
                 return calendar.timeInMillis - notificationTime * 60 * 1000
             }
         } catch (e: ParseException) {
