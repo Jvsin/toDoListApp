@@ -46,12 +46,16 @@ class MainActivity : AppCompatActivity(), TodoAdapter.TodoClickListener {
     private var notificationTime: Int = 1
     private var notificationsTimeTable: IntArray = intArrayOf(1, 5, 10, 15, 30)
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        createNotificationChannel()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            createNotificationChannel()
+        }
+
         initUI()
 
         viewModel = ViewModelProvider(

@@ -1,4 +1,5 @@
 package com.example.todolistapp
+
 import android.app.Activity
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
@@ -13,10 +14,10 @@ import com.example.todolistapp.databinding.ActivityAddTodoBinding
 import com.example.todolistapp.entities.Todo
 import java.text.SimpleDateFormat
 import java.util.*
+import com.example.todolistapp.Notification
 
 import android.annotation.SuppressLint
 import android.app.AlarmManager
-import android.app.Notification
 import android.app.PendingIntent
 import android.app.NotificationManager
 import android.content.Context
@@ -111,6 +112,13 @@ class AddTodoActivity : AppCompatActivity() {
         binding.btnPickDateTime.setOnClickListener {
             showDateTimePickerDialog()
         }
+
+//        //TEST
+//        val testIntent = Intent(applicationContext, com.example.todolistapp.Notification::class.java)
+//        testIntent.putExtra("current_todo", editToDo)
+//        testIntent.putExtra("notification_time", notificationTime)
+//        sendBroadcast(testIntent)
+//        //TEST
     }
 
     private fun showDateTimePickerDialog() {
@@ -165,9 +173,18 @@ class AddTodoActivity : AppCompatActivity() {
 
     @SuppressLint("ScheduleExactAlarm")
     private fun scheduleNotification(title: String, message: String) {
+        Log.v("powiadomienia AM", "scheduleNotification started")
+
+//        val intent = Intent(applicationContext, Notification::class.java).apply {
+//            putExtra("current_todo", actualTodo)
+//            putExtra("notification_time", notificationTime)
+//        }
+
         val intent = Intent(applicationContext, Notification::class.java)
         intent.putExtra("current_todo", actualTodo)
         intent.putExtra("notification_time", notificationTime)
+
+        Log.v("powiadomienia AM", "Intent created with todo: ${actualTodo.title} and notificationTime: $notificationTime")
 
         val pendingIntent = PendingIntent.getBroadcast(
             applicationContext,
@@ -176,22 +193,27 @@ class AddTodoActivity : AppCompatActivity() {
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
 
+        Log.v("powiadomienia AM", "PendingIntent created")
+
         val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
         val time = actualTodo.deadline?.let { getTime(it) }
-        Log.v("powiadomienia", time.toString() + ' ' + System.currentTimeMillis().toString())
-        if (time != null && time > System.currentTimeMillis()) {  // Ensure the time is in the future
+        Log.v("powiadomienia AM", "Calculated time: $time, current time: ${getDateTime(System.currentTimeMillis())}")
+
+        if (time != null && time > System.currentTimeMillis()) {
+            Log.v("powiadomienia AM", "Scheduling notification for time: " + getDateTime(time) + " show pending: $pendingIntent")
             alarmManager.setExactAndAllowWhileIdle(
                 AlarmManager.RTC_WAKEUP,
                 time,
                 pendingIntent
             )
+            Log.v("powiadomienia AM", "Notification scheduled successfully")
         } else {
-            Log.e("powiadomienia", "Scheduled time is in the past or null.")
+            Log.e("powiadomienia AM", "Scheduled time is in the past or null.")
             Toast.makeText(this@AddTodoActivity, "Powiadomienie po czasie", Toast.LENGTH_LONG).show()
         }
-
     }
+
 
     fun checkNotificationPermissions(context: Context): Boolean {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -227,12 +249,14 @@ class AddTodoActivity : AppCompatActivity() {
         try {
             val parsedDate = formatter.parse(date)
             if (parsedDate != null) {
+                Log.v("powiadomienia", parsedDate.toString())
                 calendar.time = parsedDate
                 val year = calendar.get(Calendar.YEAR)
                 val month = calendar.get(Calendar.MONTH)
                 val day = calendar.get(Calendar.DAY_OF_MONTH)
                 val hours = calendar.get(Calendar.HOUR_OF_DAY)
                 val minutes = calendar.get(Calendar.MINUTE)
+                Log.v("powiadomienia", "$year, $month, $day, $hours, $minutes")
                 calendar.set(year, month, day, hours, minutes)
                 Log.v("powiadomienia", notificationTime.toString())
                 return calendar.timeInMillis - notificationTime * 60 * 1000
@@ -243,5 +267,10 @@ class AddTodoActivity : AppCompatActivity() {
         return 0
     }
 
+    fun getDateTime(timestampMillis: Long): String {
+        val date = java.util.Date(timestampMillis)
+        val sdf = java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.getDefault())
+        return sdf.format(date)
+    }
 
 }
