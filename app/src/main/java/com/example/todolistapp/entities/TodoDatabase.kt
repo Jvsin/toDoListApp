@@ -7,7 +7,7 @@ import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
-@Database(entities = arrayOf(Todo::class), version = 2)
+@Database(entities = arrayOf(Todo::class), version = 3)
 abstract class TodoDatabase : RoomDatabase() {
     abstract fun getTodoDao(): TodoDao
 
@@ -22,7 +22,7 @@ abstract class TodoDatabase : RoomDatabase() {
                     TodoDatabase::class.java,
                     "tasks"
                 )
-//                    .addMigrations(MIGRATION_1_2)
+//                    .addMigrations(MIGRATION_2_3)
                     .build()
 
                 INSTANCE = instance
@@ -30,12 +30,13 @@ abstract class TodoDatabase : RoomDatabase() {
             }
         }
 
-//        private val MIGRATION_1_2 = object : Migration(1, 2) {
+//        private val MIGRATION_2_3 = object : Migration(2, 3) {
 //            override fun migrate(database: SupportSQLiteDatabase) {
 //                database.execSQL("ALTER TABLE todo_table ADD COLUMN deadline TEXT")
 //                database.execSQL("ALTER TABLE todo_table ADD COLUMN category INTEGER")
 //                database.execSQL("ALTER TABLE todo_table ADD COLUMN isFinished INTEGER")
 //                database.execSQL("ALTER TABLE todo_table ADD COLUMN notifications INTEGER")
+//                database.execSQL("ALTER TABLE todo_table ADD COLUMN attachments TEXT")
 //            }
 //        }
     }

@@ -15,6 +15,11 @@ class TodoRepository(private val todoDao: TodoDao) {
     }
 
     suspend fun update(todo: Todo){
-        todoDao.update(todo.id, todo.title, todo.note, todo.deadline, todo.category, todo.isFinished, todo.notifications)
+        todoDao.update(todo.id, todo.title, todo.note, todo.deadline, todo.category, todo.isFinished,
+            todo.notifications, todo.attachments)
     }
+//    suspend fun update(todo: Todo){
+//        todoDao.update(todo.id, todo.title, todo.note, todo.deadline, todo.category, todo.isFinished,
+//            todo.notifications)
+//    }
 }

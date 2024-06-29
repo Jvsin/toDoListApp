@@ -82,15 +82,36 @@
         app:layout_constraintStart_toStartOf="@+id/et_title"
         app:layout_constraintTop_toBottomOf="@+id/et_title" />
 
-    <Button
-        android:id="@+id/btnPickDateTime"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:id="@+id/buttonsLayout"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="Ustaw datę i godzinę"
-        android:backgroundTint="@color/blue"
-        app:layout_constraintTop_toBottomOf="@id/et_note"
+        android:orientation="horizontal"
+        android:layout_marginTop="8dp"
         app:layout_constraintStart_toStartOf="parent"
-        android:onClick="onPickDateTimeClick"/>
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/et_note">
+
+        <Button
+            android:id="@+id/btnPickDateTime"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Ustaw datę i godzinę"
+            android:backgroundTint="@color/blue"
+            android:onClick="onPickDateTimeClick"/>
+
+        <Button
+            android:id="@+id/et_btnAddAttachment"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:backgroundTint="@color/blue"
+            android:text="Dodaj załączniki"
+            android:layout_margin="2dp"/>
+
+    </LinearLayout>
+
 
     <Spinner
         android:id="@+id/spinner_category"
@@ -100,7 +121,7 @@
         android:entries="@array/category_array"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/btnPickDateTime" />
+        app:layout_constraintTop_toBottomOf="@id/buttonsLayout" />
 
     <LinearLayout
         android:id="@+id/checkboxes"
@@ -129,5 +150,15 @@
             app:layout_constraintStart_toStartOf="parent"
             tools:ignore="UseSwitchCompatOrMaterialXml" />
     </LinearLayout>
+
+    <ListView
+        android:id="@+id/filesList"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="8dp"
+        app:layout_constraintTop_toBottomOf="@+id/checkboxes"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

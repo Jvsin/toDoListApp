@@ -21,10 +21,18 @@ import android.app.AlarmManager
 import android.app.PendingIntent
 import android.app.NotificationManager
 import android.content.Context
+import android.net.Uri
 import android.os.Build
 import android.provider.Settings
 import android.util.Log
+import android.widget.ArrayAdapter
+import android.widget.ListView
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.NotificationManagerCompat
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
+import java.io.File
+import java.io.IOException
 import java.text.ParseException
 
 class AddTodoActivity : AppCompatActivity() {
@@ -34,11 +42,24 @@ class AddTodoActivity : AppCompatActivity() {
     private lateinit var actualTodo: Todo
     var isUpdate = false
     private var notificationTime : Int = 0
+    private var allFilesList: MutableList<String> = mutableListOf()
+    private lateinit var listView: ListView
+
+    private val getContent = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+        if (uri != null) {
+            updateFileList(uri)
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityAddTodoBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        listView = binding.filesList
+        listView.setOnItemClickListener { _, _, position, _ ->
+//           openFile(position)
+        }
 
         try {
             editToDo = intent.getSerializableExtra("current_todo") as Todo
@@ -54,6 +75,12 @@ class AddTodoActivity : AppCompatActivity() {
             editToDo.deadline?.let {
                 val calendar = getCalendarFromDateString(it)
                 binding.btnPickDateTime.text = SimpleDateFormat("EEE, d MMM yyyy HH:mm a", Locale.getDefault()).format(calendar.time)
+            }
+            editToDo.attachments?.let {
+                val attachs: MutableList<String> = toAttachmentsList(editToDo.attachments.toString())
+                attachs.forEach {
+                    addToFileList(it)
+                }
             }
             isUpdate = true
         } catch (e: Exception) {
@@ -78,9 +105,11 @@ class AddTodoActivity : AppCompatActivity() {
             if (title.isNotEmpty() && todoDescription.isNotEmpty()) {
                 val formatter = SimpleDateFormat("EEE, d MMM yyyy HH:mm a")
                 val todo = if (isUpdate) {
-                    Todo(editToDo.id, title, todoDescription, formatter.format(Date()), deadline, category, isFinished, notifications)
+                    Todo(editToDo.id, title, todoDescription, formatter.format(Date()), deadline,
+                        category, isFinished, notifications, fromAttachmentsList(allFilesList))
                 } else {
-                    Todo(null, title, todoDescription, formatter.format(Date()), deadline, category, isFinished, notifications)
+                    Todo(null, title, todoDescription, formatter.format(Date()), deadline,
+                        category, isFinished, notifications, fromAttachmentsList(allFilesList))
                 }
                 actualTodo = todo
                 if (deadline !== "" && notifications) // && deadline.length == 16
@@ -113,6 +142,14 @@ class AddTodoActivity : AppCompatActivity() {
             showDateTimePickerDialog()
         }
 
+
+        listView.setOnItemLongClickListener { _, _, position, _ ->
+            deleteFileList(position)
+            true
+        }
+        binding.etBtnAddAttachment.setOnClickListener {
+            getContent.launch("*/*")
+        }
 //        //TEST
 //        val testIntent = Intent(applicationContext, com.example.todolistapp.Notification::class.java)
 //        testIntent.putExtra("current_todo", editToDo)
@@ -173,17 +210,10 @@ class AddTodoActivity : AppCompatActivity() {
 
     @SuppressLint("ScheduleExactAlarm")
     private fun scheduleNotification(title: String, message: String) {
-        Log.v("powiadomienia AM", "scheduleNotification started")
-
-//        val intent = Intent(applicationContext, Notification::class.java).apply {
-//            putExtra("current_todo", actualTodo)
-//            putExtra("notification_time", notificationTime)
-//        }
 
         val intent = Intent(applicationContext, Notification::class.java)
         intent.putExtra("current_todo", actualTodo)
         intent.putExtra("notification_time", notificationTime)
-
         Log.v("powiadomienia AM", "Intent created with todo: ${actualTodo.title} and notificationTime: $notificationTime")
 
         val pendingIntent = PendingIntent.getBroadcast(
@@ -193,21 +223,17 @@ class AddTodoActivity : AppCompatActivity() {
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
 
-        Log.v("powiadomienia AM", "PendingIntent created")
-
         val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
         val time = actualTodo.deadline?.let { getTime(it) }
-        Log.v("powiadomienia AM", "Calculated time: $time, current time: ${getDateTime(System.currentTimeMillis())}")
 
         if (time != null && time > System.currentTimeMillis()) {
-            Log.v("powiadomienia AM", "Scheduling notification for time: " + getDateTime(time) + " show pending: $pendingIntent")
+            Log.v("powiadomienia AM", "Scheduling notification for time: " + getDateTime(time) + " current time: ${getDateTime(System.currentTimeMillis())}")
             alarmManager.setExactAndAllowWhileIdle(
                 AlarmManager.RTC_WAKEUP,
                 time,
                 pendingIntent
             )
-            Log.v("powiadomienia AM", "Notification scheduled successfully")
         } else {
             Log.e("powiadomienia AM", "Scheduled time is in the past or null.")
             Toast.makeText(this@AddTodoActivity, "Powiadomienie po czasie", Toast.LENGTH_LONG).show()
@@ -249,14 +275,12 @@ class AddTodoActivity : AppCompatActivity() {
         try {
             val parsedDate = formatter.parse(date)
             if (parsedDate != null) {
-                Log.v("powiadomienia", parsedDate.toString())
                 calendar.time = parsedDate
                 val year = calendar.get(Calendar.YEAR)
                 val month = calendar.get(Calendar.MONTH)
                 val day = calendar.get(Calendar.DAY_OF_MONTH)
                 val hours = calendar.get(Calendar.HOUR_OF_DAY)
                 val minutes = calendar.get(Calendar.MINUTE)
-                Log.v("powiadomienia", "$year, $month, $day, $hours, $minutes")
                 calendar.set(year, month, day, hours, minutes)
                 Log.v("powiadomienia", notificationTime.toString())
                 return calendar.timeInMillis - notificationTime * 60 * 1000
@@ -273,4 +297,51 @@ class AddTodoActivity : AppCompatActivity() {
         return sdf.format(date)
     }
 
+    private fun fromAttachmentsList(attachments: MutableList<String>): String {
+        Log.v("attach","z listy na json " + Gson().toJson(attachments) )
+        return Gson().toJson(attachments)
+    }
+
+    private fun toAttachmentsList(attachmentsJson: String): MutableList<String> {
+        val type = object : TypeToken<MutableList<String>>() {}.type
+        Log.v("attach", "z json na liste " + Gson().fromJson(attachmentsJson, type))
+        return Gson().fromJson(attachmentsJson, type)
+    }
+
+    private fun openFile(position: Int) {
+        val openIntent = Intent(Intent.ACTION_VIEW)
+        openIntent.data = Uri.parse(allFilesList[position])
+        startActivity(openIntent)
+    }
+
+    private fun updateFileList(uri: Uri) {
+        allFilesList.add(uri.path.toString())
+        val adapter = ArrayAdapter(this, R.layout.attach_item, allFilesList)
+        listView.adapter = adapter
+    }
+
+    private fun addToFileList(path: String) {
+        allFilesList.add(path)
+        val adapter = ArrayAdapter(this, R.layout.attach_item, allFilesList)
+        listView.adapter = adapter
+    }
+
+    private fun deleteFileList(position: Int) {
+        allFilesList.removeAt(position)
+        val adapter = ArrayAdapter(this, R.layout.attach_item, allFilesList)
+        listView.adapter = adapter
+    }
+
+//    private fun handleFileSelection(uri: Uri?) {
+//        if (uri != null) {
+//            try {
+//                val fileName: String = getFileName(uri)
+//                val destFile = File(filesDir, fileName)
+//                Log.v("destFile", filesDir.toString())
+//                copyFileToInternalStorage(uri, destFile)
+//            } catch (e: IOException) {
+//                e.printStackTrace()
+//            }
+//        }
+//    }
 }

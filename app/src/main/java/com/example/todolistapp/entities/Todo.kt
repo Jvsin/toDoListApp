@@ -14,4 +14,5 @@ data class Todo(
     @ColumnInfo(name = "category") val category: Int?,
     @ColumnInfo(name = "isFinished") val isFinished: Boolean?,
     @ColumnInfo(name = "notifications") val notifications: Boolean?,
+    @ColumnInfo(name = "attachments") val attachments: String?
 ): java.io.Serializable
