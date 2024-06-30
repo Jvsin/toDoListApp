@@ -11,19 +11,20 @@ import com.example.todolistapp.entities.Todo
 
 const val notificationID = 121
 const val channelID = "channel1"
+//const val titleExtra = "titleExtra"
+//const val messageExtra = "messageExtra"
 
 class Notification : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         val todo = intent.getSerializableExtra("current_todo") as Todo
-        val check = intent.getSerializableExtra("notification_time") as Int
+        val notificationTime = intent.getSerializableExtra("notification_time") as Int
 
         val activityIntent = Intent(context, AddTodoActivity::class.java)
         activityIntent.putExtra("current_todo", todo)
-        activityIntent.putExtra("notification_time", check)
-        Log.v("powiadomienia", "$todo $check")
+        activityIntent.putExtra("notification_time", notificationTime)
+        Log.v("powiadomienia", "$todo $notificationTime")
         val id = 0
-        val pendingIntent = PendingIntent.getActivity(context, id, activityIntent,
-            PendingIntent.FLAG_CANCEL_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+        val pendingIntent = PendingIntent.getActivity(context, id, activityIntent, PendingIntent.FLAG_CANCEL_CURRENT or PendingIntent.FLAG_IMMUTABLE)
         val notification = NotificationCompat.Builder(context, channelID)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setContentTitle(todo.title)
