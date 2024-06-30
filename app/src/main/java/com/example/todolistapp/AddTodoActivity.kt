@@ -112,7 +112,7 @@ class AddTodoActivity : AppCompatActivity() {
                         category, isFinished, notifications, fromAttachmentsList(allFilesList))
                 }
                 actualTodo = todo
-                if (deadline !== "" && notifications) // && deadline.length == 16
+                if (deadline !== "" && notifications)
                     if (checkNotificationPermissions(this)) {
                         // Schedule a notification
                         scheduleNotification(title, todoDescription)
