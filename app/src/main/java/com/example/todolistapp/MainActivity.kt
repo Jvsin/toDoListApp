@@ -44,7 +44,7 @@ class MainActivity : AppCompatActivity(), TodoAdapter.TodoClickListener {
     private var selectedCategory = 0
 
     private var notificationTime: Int = 1
-    private var notificationsTimeTable: IntArray = intArrayOf(1, 5, 10, 15, 30)
+    private var notificationSpinner: IntArray = intArrayOf(1, 5, 10, 15, 30)
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -109,7 +109,7 @@ class MainActivity : AppCompatActivity(), TodoAdapter.TodoClickListener {
 
         binding.fabAddTodo.setOnClickListener {
             val intent = Intent(this, AddTodoActivity::class.java)
-            intent.putExtra("notification_time", notificationsTimeTable[notificationTime])
+            intent.putExtra("notification_time", notificationSpinner[notificationTime])
             getContent.launch(intent)
         }
 
@@ -134,7 +134,7 @@ class MainActivity : AppCompatActivity(), TodoAdapter.TodoClickListener {
     override fun onItemClicked(todo: Todo) {
         val intent = Intent(this@MainActivity, AddTodoActivity::class.java)
         intent.putExtra("current_todo", todo)
-        intent.putExtra("notification_time", notificationsTimeTable[notificationTime])
+        intent.putExtra("notification_time", notificationSpinner[notificationTime])
         updateOrDeleteTodo.launch(intent)
     }
 

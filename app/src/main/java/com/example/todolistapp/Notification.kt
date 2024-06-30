@@ -11,8 +11,6 @@ import com.example.todolistapp.entities.Todo
 
 const val notificationID = 121
 const val channelID = "channel1"
-//const val titleExtra = "titleExtra"
-//const val messageExtra = "messageExtra"
 
 class Notification : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
