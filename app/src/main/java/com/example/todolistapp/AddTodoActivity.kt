@@ -49,9 +49,7 @@ class AddTodoActivity : AppCompatActivity() {
     private lateinit var listView: ListView
 
     private val getContent = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
-        if (uri != null) {
-            handleFileSelection(uri)
-        }
+        uri?.let { createFileInInternalStorage(it) }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -60,9 +58,7 @@ class AddTodoActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         listView = binding.filesList
-        listView.setOnItemClickListener { _, _, position, _ ->
-//           openFile(position)
-        }
+        setupListView()
 
         try {
             editToDo = intent.getSerializableExtra("current_todo") as Todo
@@ -80,7 +76,7 @@ class AddTodoActivity : AppCompatActivity() {
                 binding.btnPickDateTime.text = SimpleDateFormat("EEE, d MMM yyyy HH:mm a", Locale.getDefault()).format(calendar.time)
             }
             editToDo.attachments?.let {
-                val attachs: MutableList<String> = toAttachmentsList(editToDo.attachments.toString())
+                val attachs: MutableList<String> = convertFromGsonToList(editToDo.attachments.toString())
                 attachs.forEach {
                     addToFileList(it)
                 }
@@ -109,10 +105,10 @@ class AddTodoActivity : AppCompatActivity() {
                 val formatter = SimpleDateFormat("EEE, d MMM yyyy HH:mm a")
                 val todo = if (isUpdate) {
                     Todo(editToDo.id, title, todoDescription, formatter.format(Date()), deadline,
-                        category, isFinished, notifications, fromAttachmentsList(allFilesList))
+                        category, isFinished, notifications, convertFromListToGson(allFilesList))
                 } else {
                     Todo(null, title, todoDescription, formatter.format(Date()), deadline,
-                        category, isFinished, notifications, fromAttachmentsList(allFilesList))
+                        category, isFinished, notifications, convertFromListToGson(allFilesList))
                 }
                 actualTodo = todo
                 if (deadline !== "" && notifications)
@@ -148,14 +144,17 @@ class AddTodoActivity : AppCompatActivity() {
             showDateTimePickerDialog()
         }
 
+        binding.etBtnAddAttachment.setOnClickListener {
+            getContent.launch("*/*")
+        }
+    }
 
+    private fun setupListView() {
+//        listView.setOnItemClickListener { _, _, position, _ -> openFile(position) }
         listView.setOnItemLongClickListener { _, _, position, _ ->
             handleDelete(allFilesList[position])
             deleteFileList(position)
             true
-        }
-        binding.etBtnAddAttachment.setOnClickListener {
-            getContent.launch("*/*")
         }
     }
 
@@ -194,7 +193,6 @@ class AddTodoActivity : AppCompatActivity() {
         binding.btnPickDateTime.text = dateFormat.format(dateTime)
     }
 
-
     private fun getCalendarFromDateString(dateString: String): Calendar {
         val calendar = Calendar.getInstance()
         val formatter = SimpleDateFormat("EEE, d MMM yyyy HH:mm a")
@@ -211,23 +209,15 @@ class AddTodoActivity : AppCompatActivity() {
 
     @SuppressLint("ScheduleExactAlarm")
     private fun scheduleNotification(title: String, message: String) {
-
-        val intent = Intent(applicationContext, Notification::class.java)
-        intent.putExtra("current_todo", actualTodo)
-        intent.putExtra("notification_time", notificationTime)
-        Log.v("powiadomienia AM", "Intent created with todo: ${actualTodo.title} and notificationTime: $notificationTime")
-
-        val pendingIntent = PendingIntent.getBroadcast(
-            applicationContext,
-            notificationID,
-            intent,
-            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
-        )
+        val intent = Intent(applicationContext, Notification::class.java).apply {
+            putExtra("current_todo", actualTodo)
+            putExtra("notification_time", notificationTime)
+        }
+        val pendingIntent = PendingIntent.getBroadcast(applicationContext, notificationID, intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
 
         val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
-        val time = actualTodo.deadline?.let { getTime(it) }
-
+        val time = actualTodo.deadline?.let { getNotificationTime(it) }
         if (time != null && time > System.currentTimeMillis()) {
             Log.v("powiadomienia AM", "Scheduling notification for time: " + getDateTime(time) + " current time: ${getDateTime(System.currentTimeMillis())}")
             alarmManager.setExactAndAllowWhileIdle(
@@ -237,7 +227,7 @@ class AddTodoActivity : AppCompatActivity() {
             )
         } else {
             Log.e("powiadomienia AM", "Scheduled time is in the past or null.")
-            Toast.makeText(this@AddTodoActivity, "Powiadomienie po czasie", Toast.LENGTH_LONG).show()
+            Toast.makeText(this@AddTodoActivity, "Powiadomienie upłynęło", Toast.LENGTH_LONG).show()
         }
     }
 
@@ -269,7 +259,7 @@ class AddTodoActivity : AppCompatActivity() {
         return true
     }
 
-    private fun getTime(date: String): Long {
+    private fun getNotificationTime(date: String): Long {
         val formatter = SimpleDateFormat("EEE, d MMM yyyy HH:mm a", Locale.getDefault())
         val calendar = Calendar.getInstance()
 
@@ -298,12 +288,12 @@ class AddTodoActivity : AppCompatActivity() {
         return sdf.format(date)
     }
 
-    private fun fromAttachmentsList(attachments: MutableList<String>): String {
+    private fun convertFromListToGson(attachments: MutableList<String>): String {
         Log.v("attach","z listy na json " + Gson().toJson(attachments) )
         return Gson().toJson(attachments)
     }
 
-    private fun toAttachmentsList(attachmentsJson: String): MutableList<String> {
+    private fun convertFromGsonToList(attachmentsJson: String): MutableList<String> {
         val type = object : TypeToken<MutableList<String>>() {}.type
         Log.v("attach", "z json na liste " + Gson().fromJson(attachmentsJson, type))
         return Gson().fromJson(attachmentsJson, type)
@@ -333,26 +323,11 @@ class AddTodoActivity : AppCompatActivity() {
         listView.adapter = adapter
     }
 
-    private fun handleFileSelection(uri: Uri?) {
-        if (uri != null) {
-            try {
-                val fileName: String = getFileName(uri)
-                val destFile = File(filesDir, fileName)
-                Log.v("destFile", filesDir.toString())
-                copyFileToInternalStorage(uri, destFile)
-            } catch (e: IOException) {
-                e.printStackTrace()
-            }
-        }
-    }
-
-    private fun handleDelete(fileName: String) {
+    private fun createFileInInternalStorage(uri: Uri) {
         try {
+            val fileName = getFileNameFromUri(uri)
             val destFile = File(filesDir, fileName)
-            Log.v("destFileDelete", filesDir.toString())
-            if (destFile.exists()) {
-                destFile.delete()
-            }
+            copyFileToInternalStorage(uri, destFile)
         } catch (e: IOException) {
             e.printStackTrace()
         }
@@ -360,34 +335,35 @@ class AddTodoActivity : AppCompatActivity() {
 
     @Throws(IOException::class)
     private fun copyFileToInternalStorage(uri: Uri, destFile: File) {
-        contentResolver.openInputStream(uri).use { inputStream ->
+        contentResolver.openInputStream(uri)?.use { inputStream ->
             Files.newOutputStream(destFile.toPath()).use { outputStream ->
                 val buffer = ByteArray(1024)
                 var length: Int
-                while (inputStream!!.read(buffer).also { length = it } > 0) {
+                while (inputStream.read(buffer).also { length = it } > 0) {
                     outputStream.write(buffer, 0, length)
                 }
             }
         }
-
-        val fileName = destFile.nameWithoutExtension
-        val dataWMillis = System.currentTimeMillis()
-        val newFileName = "$fileName-$dataWMillis.${destFile.extension}"
+        val newFileName = "${destFile.nameWithoutExtension}-${System.currentTimeMillis()}.${destFile.extension}"
         destFile.renameTo(File(destFile.parent, newFileName))
         updateFileList(newFileName)
     }
 
-    private fun getFileName(uri: Uri): String {
-        var fileName: String? = ""
-        val cursor = contentResolver.query(uri, null, null, null, null)
-        try {
-            if (cursor != null && cursor.moveToFirst()) {
-                val displayNameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
-                fileName = cursor.getString(displayNameIndex)
-            }
-        } finally {
-            cursor?.close()
+    private fun handleDelete(fileName: String) {
+        val destFile = File(filesDir, fileName)
+        if (destFile.exists()) {
+            destFile.delete()
         }
-        return fileName ?: ""
+    }
+
+    @SuppressLint("Range")
+    private fun getFileNameFromUri(uri: Uri): String {
+        return contentResolver.query(uri, null, null, null, null)?.use { cursor ->
+            if (cursor.moveToFirst()) {
+                cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME))
+            } else {
+                ""
+            }
+        } ?: ""
     }
 }
