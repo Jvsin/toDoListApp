@@ -29,11 +29,14 @@ import android.widget.ArrayAdapter
 import android.widget.ListView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.NotificationManagerCompat
+//import com.google.firebase.crashlytics.buildtools.reloc.com.google.common.io.Files
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import java.io.File
 import java.io.IOException
 import java.text.ParseException
+import java.nio.file.Files
+import android.provider.OpenableColumns
 
 class AddTodoActivity : AppCompatActivity() {
 
@@ -47,7 +50,7 @@ class AddTodoActivity : AppCompatActivity() {
 
     private val getContent = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
         if (uri != null) {
-            updateFileList(uri)
+            handleFileSelection(uri)
         }
     }
 
@@ -127,6 +130,9 @@ class AddTodoActivity : AppCompatActivity() {
         }
 
         binding.imgDelete.setOnClickListener {
+            allFilesList.forEach {
+                deleteFile(it)
+            }
             val intent = Intent()
             intent.putExtra("todo", editToDo)
             intent.putExtra("delete_todo", true)
@@ -144,18 +150,13 @@ class AddTodoActivity : AppCompatActivity() {
 
 
         listView.setOnItemLongClickListener { _, _, position, _ ->
+            handleDelete(allFilesList[position])
             deleteFileList(position)
             true
         }
         binding.etBtnAddAttachment.setOnClickListener {
             getContent.launch("*/*")
         }
-//        //TEST
-//        val testIntent = Intent(applicationContext, com.example.todolistapp.Notification::class.java)
-//        testIntent.putExtra("current_todo", editToDo)
-//        testIntent.putExtra("notification_time", notificationTime)
-//        sendBroadcast(testIntent)
-//        //TEST
     }
 
     private fun showDateTimePickerDialog() {
@@ -314,8 +315,8 @@ class AddTodoActivity : AppCompatActivity() {
         startActivity(openIntent)
     }
 
-    private fun updateFileList(uri: Uri) {
-        allFilesList.add(uri.path.toString())
+    private fun updateFileList(fileName: String) {
+        allFilesList.add(fileName)
         val adapter = ArrayAdapter(this, R.layout.attach_item, allFilesList)
         listView.adapter = adapter
     }
@@ -332,16 +333,61 @@ class AddTodoActivity : AppCompatActivity() {
         listView.adapter = adapter
     }
 
-//    private fun handleFileSelection(uri: Uri?) {
-//        if (uri != null) {
-//            try {
-//                val fileName: String = getFileName(uri)
-//                val destFile = File(filesDir, fileName)
-//                Log.v("destFile", filesDir.toString())
-//                copyFileToInternalStorage(uri, destFile)
-//            } catch (e: IOException) {
-//                e.printStackTrace()
-//            }
-//        }
-//    }
+    private fun handleFileSelection(uri: Uri?) {
+        if (uri != null) {
+            try {
+                val fileName: String = getFileName(uri)
+                val destFile = File(filesDir, fileName)
+                Log.v("destFile", filesDir.toString())
+                copyFileToInternalStorage(uri, destFile)
+            } catch (e: IOException) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    private fun handleDelete(fileName: String) {
+        try {
+            val destFile = File(filesDir, fileName)
+            Log.v("destFileDelete", filesDir.toString())
+            if (destFile.exists()) {
+                destFile.delete()
+            }
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
+    }
+
+    @Throws(IOException::class)
+    private fun copyFileToInternalStorage(uri: Uri, destFile: File) {
+        contentResolver.openInputStream(uri).use { inputStream ->
+            Files.newOutputStream(destFile.toPath()).use { outputStream ->
+                val buffer = ByteArray(1024)
+                var length: Int
+                while (inputStream!!.read(buffer).also { length = it } > 0) {
+                    outputStream.write(buffer, 0, length)
+                }
+            }
+        }
+
+        val fileName = destFile.nameWithoutExtension
+        val dataWMillis = System.currentTimeMillis()
+        val newFileName = "$fileName-$dataWMillis.${destFile.extension}"
+        destFile.renameTo(File(destFile.parent, newFileName))
+        updateFileList(newFileName)
+    }
+
+    private fun getFileName(uri: Uri): String {
+        var fileName: String? = ""
+        val cursor = contentResolver.query(uri, null, null, null, null)
+        try {
+            if (cursor != null && cursor.moveToFirst()) {
+                val displayNameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                fileName = cursor.getString(displayNameIndex)
+            }
+        } finally {
+            cursor?.close()
+        }
+        return fileName ?: ""
+    }
 }

@@ -46,6 +46,7 @@ dependencies {
     implementation(libs.androidx.room.ktx.v251)
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.material3.android)
+    implementation(libs.firebase.crashlytics.buildtools)
     kapt(libs.androidx.room.compiler)
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
