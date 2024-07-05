@@ -5,6 +5,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.cardview.widget.CardView
 import androidx.recyclerview.widget.RecyclerView
@@ -30,6 +31,13 @@ class TodoAdapter(private val context: Context,val listener: TodoClickListener):
         holder.note.text = item.note
         holder.date.text = item.deadline
         holder.date.isSelected = true
+        Log.v("attachments", item.attachments.toString())
+        if(item.attachments.toString() == "[]"){
+            holder.attachmentIcon.visibility = View.GONE
+        }
+        else{
+            holder.attachmentIcon.visibility = View.VISIBLE
+        }
         holder.todo_layout.setOnClickListener {
             listener.onItemClicked(todoList[holder.adapterPosition])
         }
@@ -50,6 +58,7 @@ class TodoAdapter(private val context: Context,val listener: TodoClickListener):
         val title = itemView.findViewById<TextView>(R.id.tv_title)
         val note = itemView.findViewById<TextView>(R.id.tv_note)
         val date = itemView.findViewById<TextView>(R.id.tv_date)
+        val attachmentIcon = itemView.findViewById<ImageView>(R.id.attachment_icon)
     }
 
     //listener sluzący do otwierania edycji taska po nacisnieciu na element w recycleview

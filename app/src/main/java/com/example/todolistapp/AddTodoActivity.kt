@@ -113,7 +113,6 @@ class AddTodoActivity : AppCompatActivity() {
                 actualTodo = todo
                 if (deadline !== "" && notifications)
                     if (checkNotificationPermissions(this)) {
-                        // Schedule a notification
                         scheduleNotification(title, todoDescription)
                     }
                 val intent = Intent()
